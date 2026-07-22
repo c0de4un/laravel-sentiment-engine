@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentiment-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-sentiment_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-sentiment_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT_EXTERNAL:-54320}:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-sentiment_user} -d ${DB_NAME:-sentiment_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sentiment-ollama
+    restart: unless-stopped
+    volumes:
+      # ВАЖНО: Сохраняем скачанные модели между перезапусками контейнера!
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - app-network
+    # Скрипт инициализации: ждем запуска сервера и скачиваем модель
+    entrypoint: sh -c 'ollama serve & sleep 5 && ollama pull qwen2.5:1.5b && wait'
+    deploy:
+      resources:
+        limits:
+          memory: 6G # Ограничиваем аппетиты, чтобы не положить хост-машину
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  ollama_data: # Новый volume для кэширования моделей
+    driver: local
