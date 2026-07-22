@@ -1,11 +1,57 @@
 services:
+  # 1. API (PHP-FPM)
+  api:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile
+    container_name: sentiment-api
+    restart: unless-stopped
+    volumes:
+      - ./api:/var/www/html
+    environment:
+      # Передаем переменные из .env.standalone в контейнер
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_NAME:-sentiment_db}
+      DB_USERNAME: ${DB_USER:-sentiment_user}
+      DB_PASSWORD: ${DB_PASSWORD:-SuperSecretPassword123!}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LLM_BASE_URL: http://ollama:11434/v1
+      LLM_API_KEY: ollama_dummy_key
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:1.5b}
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # 2. Nginx (Web Server)
+  nginx:
+    image: nginx:alpine
+    container_name: sentiment-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./api:/var/www/html
+      - .docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - app-network
+    depends_on:
+      - api
+
+  # 3. PostgreSQL (Database)
   postgres:
     image: postgres:16-alpine
     container_name: sentiment-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-sentiment_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-SuperSecretPassword123!}
       POSTGRES_DB: ${DB_NAME:-sentiment_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,6 +65,19 @@ services:
       timeout: 5s
       retries: 5
 
+  # 4. Redis (Cache & Queues) - НОВЫЙ СЕРВИС
+  redis:
+    image: redis:7-alpine
+    container_name: sentiment-redis
+    restart: unless-stopped
+    # Хорошая практика: включаем AOF для сохранности и ограничиваем память,
+    # чтобы Redis не съел всё, если в кэш попадет мусор
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
@@ -26,5 +85,5 @@ networks:
 volumes:
   postgres_data:
     driver: local
-  ollama_data: # Новый volume для кэширования моделей
+  redis_data:
     driver: local
