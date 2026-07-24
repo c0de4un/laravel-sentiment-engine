@@ -51,3 +51,15 @@ Disclaimer: Step #4 may fail, if your Docker Engine has limit for storage. Recom
    ```sh
    docker compose compose --env-file .env.standalone -f standalone.compose.yml down
    ```
+
+## API Documentation (Swagger)
+The project includes interactive API documentation powered by Swagger (OpenAPI). The documentation is automatically generated every time the PHP container starts.
+
+### Accessing the Documentation:
+Once the containers are running, open the following URL in your browser:
+👉 http://localhost:8080/api/documentation
+Manual Generation
+If you modify API controllers or Swagger annotations and want to update the documentation immediately without restarting the container, run:
+```sh
+docker compose --env-file .env.standalone -f standalone.compose.yml exec php artisan l5-swagger:generate
+```
