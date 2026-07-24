@@ -115,4 +115,11 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'limits' => [
+        'yandex' => [
+            'hour' => env('MAIL_YANDEX_LIMIT_PER_HOUR', 30),
+            'day'  => env('MAIL_YANDEX_LIMIT_PER_DAY', 35),
+        ],
+    ],
+
 ];

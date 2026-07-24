@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null               $created_at
  * @property Carbon|null               $updated_at
  *
+ * @method static User create(array $attributes = [])
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
  * @method static Builder<static>|User query()
@@ -71,5 +72,10 @@ final class User extends Authenticatable
             'updated_at'        => 'datetime',
             'password'          => 'hashed',
         ];
+    }
+
+    public function markAsLoggedIn(): void
+    {
+        $this->updateQuietly(['last_login_at' => now()]);
     }
 }

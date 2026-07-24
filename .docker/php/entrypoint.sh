@@ -14,16 +14,5 @@ if [ -d "bootstrap/cache" ]; then
     chmod -R 775 bootstrap/cache
 fi
 
-# 2. (Опционально) Магия SQLite, если вдруг переключишь .env на sqlite
-if [ "$DB_CONNECTION" = "sqlite" ]; then
-    DB_FILE="database/database.sqlite"
-    if [ ! -f "$DB_FILE" ]; then
-        echo "👉 Creating SQLite database file at $DB_FILE..."
-        touch "$DB_FILE"
-        chown www-data:www-data "$DB_FILE"
-        chmod 775 "$DB_FILE"
-    fi
-fi
-
 # Запускаем переданный процесс (php-fpm)
 exec "$@"
