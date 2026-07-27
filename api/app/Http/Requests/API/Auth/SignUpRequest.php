@@ -34,6 +34,7 @@ final class SignUpRequest extends APIRequest
                 'string',
                 'lowercase',
                 'email:rfc,dns',
+                'min:3',
                 'max:255',
                 'unique:users,email'
             ],
