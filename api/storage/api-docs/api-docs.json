@@ -16,51 +16,35 @@
         }
     ],
     "paths": {
-        "/api/auth/signup": {
+        "/api/auth/signin": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "New user registration",
-                "description": "Create user and send confirmation email.",
-                "operationId": "ef1f8c61940a64c01bc2b178c28e921f",
+                "summary": "Вход в систему (Авторизация)",
+                "description": "Аутентифицирует пользователя по email и паролю. При успехе устанавливает HttpOnly сессионную куку (Sanctum SPA mode).",
+                "operationId": "e9bcf9f894379a5f17d5bc19f5d4ada2",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
                                     "email",
-                                    "password",
-                                    "password_confirmation"
+                                    "password"
                                 ],
                                 "properties": {
-                                    "name": {
-                                        "description": "Имя пользователя",
-                                        "type": "string",
-                                        "example": "Денис",
-                                        "maxLength": 255,
-                                        "minLength": 3
-                                    },
                                     "email": {
-                                        "description": "Уникальный email адрес",
+                                        "description": "Email адрес пользователя",
                                         "type": "string",
                                         "format": "email",
-                                        "example": "test@yandex.ru"
+                                        "example": "code4un@yandex.ru"
                                     },
                                     "password": {
-                                        "description": "Пароль (мин. 8 символов, буквы и цифры)",
+                                        "description": "Пароль пользователя",
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123",
-                                        "minLength": 8
-                                    },
-                                    "password_confirmation": {
-                                        "description": "Подтверждение пароля",
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password123"
+                                        "example": "SuperSecretPassword123!"
                                     },
                                     "remember": {
                                         "description": "Флаг \"Запомнить меня\" для продления жизни сессии",
@@ -74,15 +58,15 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Успешная регистрация. Сессионная кука установлена.",
+                    "200": {
+                        "description": "Успешная авторизация. Сессионная кука установлена.",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Регистрация успешна. Письмо с подтверждением отправлено на вашу почту."
+                                            "example": "Успешный вход в систему."
                                         },
                                         "user": {
                                             "properties": {
@@ -92,19 +76,11 @@
                                                 },
                                                 "name": {
                                                     "type": "string",
-                                                    "example": "Денис"
+                                                    "example": "Денис Зямаев"
                                                 },
                                                 "email": {
                                                     "type": "string",
-                                                    "example": "test@yandex.ru"
-                                                },
-                                                "role": {
-                                                    "type": "string",
-                                                    "example": "user",
-                                                    "enum": [
-                                                        "user",
-                                                        "admin"
-                                                    ]
+                                                    "example": "code4un@yandex.ru"
                                                 }
                                             },
                                             "type": "object"
@@ -115,26 +91,15 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Ошибка валидации данных (например, email уже занят или пароль слишком простой)",
+                    "401": {
+                        "description": "Неверный email или пароль",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "The given data was invalid."
-                                        },
-                                        "errors": {
-                                            "description": "Словарь ошибок валидации, где ключ — имя поля, а значение — массив сообщений",
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "example": "The email has already been taken."
-                                                }
-                                            }
+                                            "example": "Неверные учетные данные."
                                         }
                                     },
                                     "type": "object"
@@ -142,21 +107,11 @@
                             }
                         }
                     },
+                    "422": {
+                        "description": "Ошибка валидации данных запроса"
+                    },
                     "429": {
-                        "description": "Слишком много попыток регистрации (Rate Limit)",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Too Many Attempts."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Превышен лимит попыток входа (Rate Limit)"
                     }
                 }
             }

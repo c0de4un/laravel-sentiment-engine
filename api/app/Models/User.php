@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property int                       $id
@@ -26,10 +27,12 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|User newModelQuery()
  * @method static Builder<static>|User newQuery()
  * @method static Builder<static>|User query()
+ * @method static Builder<static>|User where($column, $value = null)
+ * @method static User findOrFail($id)
  */
 final class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
+    use HasApiTokens;
     use HasFactory;
     use Notifiable;
 

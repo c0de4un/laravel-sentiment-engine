@@ -3,7 +3,12 @@ set -e
 
 cd /var/www/html
 
-# 1. Fix permissions for Laravel (critical for bind mounts from host)
+# Создаём директорию для логов воркеров (если ещё нет)
+mkdir -p /var/log
+chown www-data:www-data /var/log
+chmod 755 /var/log
+
+# Права на storage и cache
 if [ -d "storage" ]; then
     chown -R www-data:www-data storage
     chmod -R 775 storage
@@ -14,12 +19,14 @@ if [ -d "bootstrap/cache" ]; then
     chmod -R 775 bootstrap/cache
 fi
 
-# 2. Generate Swagger documentation automatically on startup
-# This ensures the latest OpenAPI annotations are compiled without manual intervention.
-# '|| true' prevents the container from crashing if generation fails for some reason,
-# allowing php-fpm to start anyway (errors will be visible in docker logs).
-echo "🔄 Generating Swagger documentation..."
-php artisan l5-swagger:generate --no-interaction || echo "⚠️ Warning: Swagger generation failed, but continuing startup..."
+# Миграции (убедитесь, что сидер не дублирует записи)
+php artisan migrate --seed
 
-# 3. Execute the passed process (e.g., php-fpm)
+# Обновляем автозагрузку Composer (важно для новых классов)
+composer dump-autoload --optimize
+
+# Генерация Swagger (если упадёт – игнорируем)
+echo "🔄 Generating Swagger documentation..."
+php artisan l5-swagger:generate --no-interaction || echo "⚠️ Warning: Swagger generation failed"
+
 exec "$@"

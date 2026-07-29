@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем стандартные расширения PHP
@@ -36,6 +37,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+COPY .docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Копируем конфигурационные файлы
 COPY .docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
 COPY .docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -47,4 +50,4 @@ RUN chown -R www-data:www-data /var/www/html
 EXPOSE 9000
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["php-fpm"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
