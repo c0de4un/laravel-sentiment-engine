@@ -14,6 +14,12 @@ return [
     |
     */
 
+    'llm' => [
+        'base_url' => env('LLM_BASE_URL', 'http://ollama:11434/v1'),
+        'api_key' => env('LLM_API_KEY', 'ollama_dummy_key'),
+        'model' => env('LLM_MODEL', 'qwen2.5:1.5b'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
