@@ -9,7 +9,6 @@ services:
     volumes:
       - ./api:/var/www/html
     environment:
-      # Передаем переменные из .env.standalone в контейнер
       DB_HOST: postgres
       DB_PORT: 5432
       DB_DATABASE: ${DB_NAME:-sentiment_db}
@@ -70,8 +69,6 @@ services:
     image: redis:7-alpine
     container_name: sentiment-redis
     restart: unless-stopped
-    # Хорошая практика: включаем AOF для сохранности и ограничиваем память,
-    # чтобы Redis не съел всё, если в кэш попадет мусор
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
@@ -89,7 +86,6 @@ services:
       - "11434:11434"
     networks:
       - app-network
-    # ИСПРАВЛЕНО: Теперь модель берется из переменной окружения!
     entrypoint: sh -c 'ollama serve & sleep 5 && ollama pull ${LLM_MODEL:-qwen2.5:1.5b} && wait'
     deploy:
       resources:
