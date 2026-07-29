@@ -4,14 +4,24 @@ namespace App\Http\Controllers\API\Analyze;
 
 use App\Models\AnalysisResult;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final readonly class AnalyzeStatusAction
+final class AnalyzeStatusAction
 {
-    public function __invoke(int $id): JsonResponse
+    public function __invoke(Request $request, int $id): JsonResponse
     {
-        $result = AnalysisResult::where('user_id', Auth::id())->findOrFail($id);
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $result = AnalysisResult::where('user_id', $user->id)->find($id);
+
+        if (!$result) {
+            return response()->json(['message' => 'Analysis not found'], Response::HTTP_NOT_FOUND);
+        }
 
         return response()->json([
             'data' => [

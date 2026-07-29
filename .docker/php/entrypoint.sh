@@ -22,9 +22,6 @@ fi
 # Миграции (убедитесь, что сидер не дублирует записи)
 php artisan migrate --seed
 
-# Обновляем автозагрузку Composer (важно для новых классов)
-composer dump-autoload --optimize
-
 # Генерация Swagger (если упадёт – игнорируем)
 echo "🔄 Generating Swagger documentation..."
 php artisan l5-swagger:generate --no-interaction || echo "⚠️ Warning: Swagger generation failed"

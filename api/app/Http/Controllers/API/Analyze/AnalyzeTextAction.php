@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Analyze;
 use App\Http\Requests\API\Analyze\AnalyzeTextRequest;
 use App\Jobs\AnalyzeTextJob;
 use App\Models\AnalysisResult;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +15,8 @@ final readonly class AnalyzeTextAction
     public function __invoke(AnalyzeTextRequest $request): JsonResponse
     {
         $text = $request->string('text')->toString();
-        $user = Auth::user();
+        /** @var User $user */
+        $user = $request->user();
 
         $result = AnalysisResult::create([
             'user_id'   => $user->id,
