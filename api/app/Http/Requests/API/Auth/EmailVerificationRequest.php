@@ -30,12 +30,11 @@ final class EmailVerificationRequest extends APIRequest
 
         return true;
     }
-
     public function rules(): array
     {
         return [
-            'id'   => ['required', 'string'],
-            'hash' => ['required', 'string'],
+            'id'   => ['required', 'integer'], // Пример: строго число
+            'hash' => ['required', 'string', 'size:40'], // sha1 всегда 40 символов
         ];
     }
 
@@ -44,4 +43,13 @@ final class EmailVerificationRequest extends APIRequest
         $user = $this->user();
         $user->markEmailAsVerified();
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'id'   => $this->route('id'),
+            'hash' => $this->route('hash'),
+        ]);
+    }
+
 }
