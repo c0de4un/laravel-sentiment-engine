@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\Analyze\AnalyzeStatusAction;
 use App\Http\Controllers\API\Analyze\AnalyzeTextAction;
 use App\Http\Controllers\API\Auth\ResendVerificationEmailAction;
 use App\Http\Controllers\API\Auth\SignUpAction;
@@ -27,6 +28,10 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailAction::class)
 
 Route::middleware(['auth'])->group(function () {
     Route::post('analyze', AnalyzeTextAction::class)
-        ->middleware(['throttle:10,1']) // 10 запросов в минуту на пользователя
+        ->middleware(['throttle:10,1'])
         ->name('api.analyze.text');
+
+    Route::get('analyze/{id}', AnalyzeStatusAction::class)
+        ->middleware(['throttle:30,1'])
+        ->name('api.analyze.status');
 });

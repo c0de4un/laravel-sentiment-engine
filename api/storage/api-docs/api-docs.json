@@ -118,6 +118,21 @@
         }
     },
     "components": {
+        "schemas": {
+            "AnalyzeTextRequest": {
+                "required": [
+                    "text"
+                ],
+                "properties": {
+                    "text": {
+                        "description": "Текст комментария для анализа тональности",
+                        "type": "string",
+                        "example": "Этот сервис просто потрясающий, все работает быстро!"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "sanctum": {
                 "type": "http",

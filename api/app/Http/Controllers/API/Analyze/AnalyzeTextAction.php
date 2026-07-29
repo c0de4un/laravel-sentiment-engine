@@ -3,30 +3,33 @@
 namespace App\Http\Controllers\API\Analyze;
 
 use App\Http\Requests\API\Analyze\AnalyzeTextRequest;
-use App\Services\LLM\SentimentAnalyzerService;
+use App\Jobs\AnalyzeTextJob;
+use App\Models\AnalysisResult;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 final readonly class AnalyzeTextAction
 {
-    public function __construct(private SentimentAnalyzerService $analyzer) {}
-
     public function __invoke(AnalyzeTextRequest $request): JsonResponse
     {
-        try {
-            $sentiment = $this->analyzer->analyze($request->string('text')->toString());
+        $text = $request->string('text')->toString();
+        $user = Auth::user();
 
-            return response()->json([
-                'sentiment' => $sentiment->value,
-            ], Response::HTTP_OK);
-        } catch (Throwable $e) {
-            Log::error($e->getMessage() . PHP_EOL . $e->getTraceAsString());
+        $result = AnalysisResult::create([
+            'user_id'   => $user->id,
+            'text'      => $text,
+            'text_hash' => hash('sha256', trim($text)),
+            'status'    => 'pending',
+        ]);
 
-            return response()->json([
-                'message' => 'Error processing text analysis',
-            ], Response::HTTP_SERVICE_UNAVAILABLE);
-        }
+        AnalyzeTextJob::dispatch($result);
+        return response()->json([
+            'message' => 'Текст принят в обработку.',
+            'data' => [
+                'id'     => $result->id,
+                'status' => $result->status,
+            ]
+        ], Response::HTTP_ACCEPTED);
     }
 }
